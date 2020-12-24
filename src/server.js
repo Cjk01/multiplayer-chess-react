@@ -1,7 +1,14 @@
+// This server is for handling chess move requests and will act as an endpoint 
 const express = require('express');
-const app = express();
-const path = require('path');
+app = express();
+const PORT = 8080;
 
-app.get('/hey', (req, res) => res.send('hello!'))
+app.get('/', (req, res) => {
+    res.send('Hello World!')
+  })
+  
+  app.listen(PORT, () => {
+    console.log(` listening at http://localhost:${PORT}`)
+  })
 
-app.listen(8080)
+
