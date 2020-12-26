@@ -18,7 +18,9 @@ const io = require("socket.io")(server, {
 io.on("connection", (socket) => {
   
   console.log(socket.id + " has connected"); // x8WIv7-mJelg7on_ALbx
-  console.log(socket.connected);
+  
+  msgToClient = socket.id + " this is the server speaking"
+  socket.emit("Hello" , msgToClient);
   
 });
 
