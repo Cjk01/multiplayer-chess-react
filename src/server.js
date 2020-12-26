@@ -17,7 +17,30 @@ io.on("connection", (socket) => {
 
   msgToClient = socket.id + " this is the server speaking";
   socket.emit("Hello", msgToClient);
+
+  socket.on("PrivateMessage", (messageObject) => {
+    console.log("private message received by server");
+    console.log(messageObject);
+    let privMsg = {
+      recipientID: messageObject.recipientID,
+      senderID: messageObject.senderID,
+      message: messageObject.messageContent,
+    };
+    console.log("sending to : " + privMsg.recipientID);
+    socket.broadcast.emit(privMsg.recipientID, privMsg);
+  });
 });
+// receives a PrivateMessage request with a message object attached
+/* io.on("PrivateMessage", (messageObject) => {
+  console.log("private message received by server");
+  let privMsg = {
+    recipientID: messageObject.recipientID,
+    senderID: messageObject.senderID,
+    message: messageObject.messageContent,
+  };
+
+  io.to(privMsg.recipientID).emit(privMsg.recipientID, privMsg);
+}); */
 
 const PORT = 8080;
 
