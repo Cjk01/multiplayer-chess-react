@@ -15,12 +15,16 @@ const io = require("socket.io")(server, {
 io.on("connection", (socket) => {
   console.log("a user connected");
   socket.on("finalShake", (Object) => {
-    socket.broadcast.emit(Object.ownerId, Object.usrId);
+    socket.broadcast.emit(Object.ownerId, Object);
   });
   socket.on("JoinGame", (joinObject) => {
     console.log("JoinGame request received from " + joinObject.senderId);
     console.log("password of room: " + joinObject.pw);
     socket.broadcast.emit("gameSend", joinObject);
+  });
+  socket.on("PositionSend", (FENinfo) => {
+    console.log("Position send worked");
+    socket.broadcast.emit("NewFenFromServer", FENinfo);
   });
 });
 const PORT = 8080;

@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 import React from "react";
 import Chessboard from "chessboardjsx";
+import Chess from "chess.js";
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -12,20 +13,73 @@ class App extends React.Component {
       userSocket: "",
       userSocketId: "",
       opponentSocketId: "",
-      userColor: "",
-      opponentColor: "",
+      userColor: "white",
+      opponentColor: "black",
+      turnToMove: "",
       currentPositionFen: "",
       userInfoMessage: "",
+      chessGameObject: new Chess(),
+      sourceSquare: "",
+      targetSquare: "",
     };
+    let socketTemp = io("http://localhost:8080");
+    socketTemp.on("connect", () => {
+      // when an opponent enters password and sends game request
+      this.setState({ userSocket: socketTemp, userSocketId: socketTemp.id });
+      socketTemp.on("gameSend", (joinObj) => {
+        console.log("message received from" + joinObj.senderId);
+        if (this.state.inGame === false && this.state.password !== "") {
+          console.log("message success from" + joinObj.senderId);
 
+          this.setState({ opponentSocketId: joinObj.senderId });
+          let newObj = {
+            usrId: this.state.userSocketId,
+            ownerId: joinObj.senderId,
+            recipientColor: this.state.opponentColor,
+            opponentColor: this.state.userColor,
+          };
+          socketTemp.emit("finalShake", newObj); // final handshake sent
+          this.setState({ inGame: true });
+        }
+      });
+      socketTemp.on("NewCurrentPosition", (FENstring) => {
+        //updates the new current chess position
+        this.setState({ currentPositionFen: FENstring });
+      });
+      socketTemp.on(socketTemp.id, (oppObj) => {
+        console.log("final shake ");
+        this.setState({ opponentSocketId: oppObj.usrId }); // receives final handshake
+        this.setState({ userColor: oppObj.recipientColor });
+        this.setState({ opponentColor: oppObj.opponentColor });
+        this.setState({ inGame: true });
+        this.setState({ currentPositionFen: this.state.chessGameObject.fen() });
+      });
+      socketTemp.on("NewFenFromServer", (FENobj) => {
+        console.log("outside scope");
+        if (this.state.userSocketId === FENobj.RecipientSocketID) {
+          console.log("inside scope");
+          this.setState({
+            currentPositionFen: FENobj.FEN,
+          });
+          this.state.chessGameObject.move(FENobj.move);
+        }
+      });
+    });
     this.handleCreationInput = this.handleCreationInput.bind(this);
     this.handleJoinInput = this.handleJoinInput.bind(this);
     this.handleCreationInputChange = this.handleCreationInputChange.bind(this);
     this.handleJoinInputChange = this.handleJoinInputChange.bind(this);
+    this.ValidateMove = this.ValidateMove.bind(this);
+    this.SendNewFen = this.SendNewFen.bind(this);
+    this.onSquareClick = this.onSquareClick.bind(this);
+    this.onMouseOverSquare = this.onMouseOverSquare.bind(this);
   }
 
-  componentDidMount() {
-    this.connect();
+  /* componentDidMount() {
+    if (this.state.inGame === false) {
+      this.connect();
+      console.log(this.state.chessGameObject.board());
+    }
   }
   connect() {
     let socketTemp = io("http://localhost:8080");
@@ -36,10 +90,13 @@ class App extends React.Component {
         console.log("message received from" + joinObj.senderId);
         if (this.state.inGame === false && this.state.password !== "") {
           console.log("message success from" + joinObj.senderId);
+
           this.setState({ opponentSocketId: joinObj.senderId });
           let newObj = {
             usrId: this.state.userSocketId,
             ownerId: joinObj.senderId,
+            recipientColor: this.state.opponentColor,
+            opponentColor: this.state.userColor,
           };
           socketTemp.emit("finalShake", newObj); // final handshake sent
           this.setState({ inGame: true });
@@ -49,20 +106,34 @@ class App extends React.Component {
         //updates the new current chess position
         this.setState({ currentPositionFen: FENstring });
       });
-      socketTemp.on(socketTemp.id, (oppID) => {
+      socketTemp.on(socketTemp.id, (oppObj) => {
         console.log("final shake ");
-        this.setState({ opponentSocketId: oppID }); // receives final handshake
-
+        this.setState({ opponentSocketId: oppObj.usrId }); // receives final handshake
+        this.setState({ userColor: oppObj.recipientColor });
+        this.setState({ opponentColor: oppObj.opponentColor });
         this.setState({ inGame: true });
+        this.setState({ currentPositionFen: this.state.chessGameObject.fen() });
+      });
+      socketTemp.on("NewFenFromServer", (FENobj) => {
+        console.log("outside scope");
+        if (this.state.userSocketId === FENobj.RecipientSocketID) {
+          console.log("inside scope");
+          this.setState({
+            currentPositionFen: FENobj.FEN,
+          });
+          this.state.chessGameObject.move(FENobj.move);
+        }
       });
     });
-  }
+  } */
   handleJoinInput() {
     // sends the game join request
+
     let joinObject = {
       senderId: this.state.userSocketId,
       pw: this.state.gameJoinInput,
     };
+
     this.state.userSocket.emit("JoinGame", joinObject);
     this.setState({ gameJoinInput: "" });
   }
@@ -73,12 +144,43 @@ class App extends React.Component {
   handleCreationInput() {
     this.setState({ password: this.state.passwordCreationInput });
     this.setState({ passwordCreationInput: "" });
+
+    this.setState({ currentPositionFen: this.state.chessGameObject.fen() });
   }
   handleCreationInputChange(ev) {
     console.log(ev.target.value);
     this.setState({ passwordCreationInput: ev.target.value });
   }
+  ValidateMove() {
+    console.log("move being validated");
+    this.state.chessGameObject.move({
+      from: this.state.sourceSquare,
+      to: this.state.targetSquare,
+      promotion: "q",
+    });
+    console.log("Fen about to send off");
+    this.SendNewFen(this.state.chessGameObject.fen(), {
+      from: this.state.sourceSquare,
+      to: this.state.targetSquare,
+      promotion: "q",
+    });
+  }
+  SendNewFen(NewFEN, move) {
+    this.state.userSocket.emit("PositionSend", {
+      FEN: NewFEN,
+      RecipientSocketID: this.state.opponentSocketId,
+      move: move,
+    });
+  }
+  onSquareClick = (sq) => {
+    this.setState({ sourceSquare: sq });
+    console.log("square clicked");
+  };
 
+  onMouseOverSquare = (sq) => {
+    this.setState({ targetSquare: sq });
+    console.log("Mouse over: " + sq);
+  };
   render() {
     const inGame = this.state.inGame;
     let UserMenu;
@@ -103,7 +205,13 @@ class App extends React.Component {
     } else {
       UserMenu = (
         <div>
-          <Chessboard position={this.state.currentPositionFen} />
+          <Chessboard
+            position={this.state.currentPositionFen}
+            orientation={this.state.userColor}
+            onMouseOverSquare={this.onSquareClick}
+            onDragOverSquare={this.onMouseOverSquare}
+            onDrop={this.ValidateMove()}
+          />
         </div>
       );
     }
