@@ -1,5 +1,9 @@
 import { io } from "socket.io-client";
 import React from "react";
+import Jumbotron from "react-bootstrap/Jumbotron";
+import Container from "react-bootstrap/Container";
+import Button from "react-bootstrap/Button";
+
 import Chessboard from "chessboardjsx"; // used for the chessboard React component
 import Chess from "chess.js"; // used for chess logic validation (game rules) and to generate FENs
 
@@ -123,20 +127,36 @@ class App extends React.Component {
 
   // the object {src , targ} is needed for ValidateMove to trigger properly, even though it isnt used
   // this has to do with how the chessboardjsx library triggers onDrop events
-  ValidateMove = ({ src, targ }) => {
+  ValidateMove = ({
+    src = this.state.sourceSquare,
+    targ = this.state.targetSquare,
+  }) => {
     console.log("move being validated");
-    this.state.chessGameObject.move({
-      from: this.state.sourceSquare,
-      to: this.state.targetSquare,
-      promotion: "q",
-    });
-    console.log("Fen about to send off");
-    this.setState({ currentPositionFen: this.state.chessGameObject.fen() });
-    this.SendNewFen(this.state.chessGameObject.fen(), {
-      from: this.state.sourceSquare,
-      to: this.state.targetSquare,
-      promotion: "q",
-    });
+    if (src !== targ && this.state.chessGameObject.game_over() !== true) {
+      this.state.chessGameObject.move({
+        from: src,
+        to: targ,
+        promotion: "q",
+      });
+      if (this.state.chessGameObject.game_over() !== true) {
+        console.log("Fen about to send off");
+        this.setState({ currentPositionFen: this.state.chessGameObject.fen() });
+        this.SendNewFen(this.state.chessGameObject.fen(), {
+          from: this.state.sourceSquare,
+          to: this.state.targetSquare,
+          promotion: "q",
+        });
+      } else {
+        // the move that was just made ended the game
+        console.log("GAME OVER");
+        this.setState({ currentPositionFen: this.state.chessGameObject.fen() });
+        this.SendNewFen(this.state.chessGameObject.fen(), {
+          from: this.state.sourceSquare,
+          to: this.state.targetSquare,
+          promotion: "q",
+        });
+      }
+    }
   };
 
   // Chessboard component onDrop prop triggers ValidateMove() which triggers the SendNewFen function
@@ -154,15 +174,17 @@ class App extends React.Component {
   // moused over meaning: currently hovered over but not clicking at all
   onMouseOverSquare = (sq) => {
     this.setState({ sourceSquare: sq });
-    console.log("Mouse Over: " + sq);
+    //console.log("Mouse Over: " + sq);
   };
 
   // triggered by the Chessboard component's onDragOverSquare prop
   // sets the state of target square to the currently dragged over square
   // dragged over meaning: currently hovered over while clicking
   onDragOverSquare = (sq) => {
-    this.setState({ targetSquare: sq });
-    console.log("Drag over: " + sq);
+    if (this.state.sourceSquare !== sq) {
+      this.setState({ targetSquare: sq });
+      //console.log("Drag over: " + sq);
+    }
   };
   render() {
     const inGame = this.state.inGame;
@@ -171,21 +193,23 @@ class App extends React.Component {
     // if not, renders the menu , so that they can enter a game from it
     if (inGame === false) {
       UserMenu = (
-        <div>
-          <h1>Enter your game password</h1>
-          <input
-            value={this.state.passwordCreationInput}
-            onChange={this.handleCreationInputChange}
-          ></input>
-          <button onClick={this.handleCreationInput}>create game</button>
-          <h1>join with password</h1>
-          <input
-            value={this.state.gameJoinInput}
-            onChange={this.handleJoinInputChange}
-          ></input>
+        <Container className="p-3">
+          <Jumbotron>
+            <h1>Enter your game password</h1>
+            <input
+              value={this.state.passwordCreationInput}
+              onChange={this.handleCreationInputChange}
+            ></input>
+            <Button onClick={this.handleCreationInput}>create game</Button>
+            <h1>join with password</h1>
+            <input
+              value={this.state.gameJoinInput}
+              onChange={this.handleJoinInputChange}
+            ></input>
 
-          <button onClick={this.handleJoinInput}>join game</button>
-        </div>
+            <Button onClick={this.handleJoinInput}>join game</Button>
+          </Jumbotron>
+        </Container>
       );
     } else {
       UserMenu = (
