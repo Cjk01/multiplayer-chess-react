@@ -3,9 +3,10 @@ import React from "react";
 import Jumbotron from "react-bootstrap/Jumbotron";
 import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
-
+import Alert from "react-bootstrap/Alert";
 import Chessboard from "chessboardjsx"; // used for the chessboard React component
 import Chess from "chess.js"; // used for chess logic validation (game rules) and to generate FENs
+import { Form } from "react-bootstrap";
 
 // Note, if you are unfamilliar with what a FEN is
 // A FEN is a string of characters used to represent a chess position
@@ -22,8 +23,8 @@ class App extends React.Component {
       userSocket: "", // the user's client socket object
       userSocketId: "", // the user's client socket ID
       opponentSocketId: "", // the opponent's socket ID
-      userColor: "white",
-      opponentColor: "black",
+      userColor: "",
+      opponentColor: "",
       turnToMove: "white", // used to determine if move events should trigger for the player
       currentPositionFen: "", // used to render the current chess position for the client
       userInfoMessage: "", // will be used to render info for the user
@@ -89,6 +90,7 @@ class App extends React.Component {
     this.SendNewFen = this.SendNewFen.bind(this);
     this.onMouseOverSquare = this.onMouseOverSquare.bind(this);
     this.onDragOverSquare = this.onDragOverSquare.bind(this);
+    this.setColor = this.setColor.bind(this);
   }
 
   // handles the submission of the 'join a game' submission button
@@ -107,24 +109,42 @@ class App extends React.Component {
 
   // handles input changes on the 'join a game' input  section
   handleJoinInputChange(ev) {
-    console.log(ev.target.value);
     this.setState({ gameJoinInput: ev.target.value });
   }
 
   // handles input submissions on the 'create a game' creation button
   handleCreationInput() {
-    this.setState({ password: this.state.passwordCreationInput });
-    this.setState({ passwordCreationInput: "" });
-
-    this.setState({ currentPositionFen: this.state.chessGameObject.fen() });
+    if (this.state.userColor !== "") {
+      this.setState({
+        userInfoMessage: "Game created: waiting for your opponent to join...",
+      });
+      this.setState({ password: this.state.passwordCreationInput });
+      this.setState({ passwordCreationInput: "" });
+      this.setState({ currentPositionFen: this.state.chessGameObject.fen() });
+    } else {
+      this.setState({ userInfoMessage: "You must select a color" });
+    }
   }
 
   // handles input changes on the 'create a game' section
   handleCreationInputChange(ev) {
-    console.log(ev.target.value);
     this.setState({ passwordCreationInput: ev.target.value });
   }
 
+  setColor(ev) {
+    this.setState({ userColor: ev.target.value });
+    ev.target.value === "white"
+      ? this.setState({ opponentColor: "black" })
+      : this.setState({ opponentColor: "white" });
+
+    console.log(
+      "Your color: " +
+        this.state.userColor +
+        "/n" +
+        "Opp color: " +
+        this.state.opponentColor
+    );
+  }
   // the object {src , targ} is needed for ValidateMove to trigger properly, even though it isnt used
   // this has to do with how the chessboardjsx library triggers onDrop events
   ValidateMove = ({
@@ -193,22 +213,54 @@ class App extends React.Component {
     // if not, renders the menu , so that they can enter a game from it
     if (inGame === false) {
       UserMenu = (
-        <Container className="p-3">
-          <Jumbotron>
-            <h1>Enter your game password</h1>
-            <input
-              value={this.state.passwordCreationInput}
-              onChange={this.handleCreationInputChange}
-            ></input>
-            <Button onClick={this.handleCreationInput}>create game</Button>
-            <h1>join with password</h1>
-            <input
-              value={this.state.gameJoinInput}
-              onChange={this.handleJoinInputChange}
-            ></input>
+        <Container className="">
+          <Form>
+            <Form.Group controlId="formCreateGame">
+              <Form.Label>Enter your game password</Form.Label>
+              <Form.Control
+                type="text"
+                value={this.state.passwordCreationInput}
+                onChange={this.handleCreationInputChange}
+              />
+              <Button variant="primary" onClick={this.handleCreationInput}>
+                Create Game
+              </Button>
+              <div onChange={this.setColor}>
+                <Form.Check
+                  name="colorSelect"
+                  type="radio"
+                  inline
+                  label="white"
+                  value="white"
+                ></Form.Check>
+                <Form.Check
+                  name="colorSelect"
+                  type="radio"
+                  inline
+                  label="black"
+                  value="black"
+                ></Form.Check>
+              </div>
+              <Alert
+                variant="info"
+                show={this.state.userInfoMessage === "" ? false : true}
+              >
+                {this.state.userInfoMessage}
+              </Alert>
+            </Form.Group>
 
-            <Button onClick={this.handleJoinInput}>join game</Button>
-          </Jumbotron>
+            <Form.Group>
+              <Form.Label>Join with password</Form.Label>
+              <Form.Control
+                value={this.state.gameJoinInput}
+                onChange={this.handleJoinInputChange}
+              />
+
+              <Button variant="primary" onClick={this.handleJoinInput}>
+                Join Game
+              </Button>
+            </Form.Group>
+          </Form>
         </Container>
       );
     } else {
