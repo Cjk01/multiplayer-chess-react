@@ -1,11 +1,10 @@
 import { io } from "socket.io-client";
 import React from "react";
-import Container from "react-bootstrap/Container";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
 import Chessboard from "chessboardjsx"; // used for the chessboard React component
 import Chess from "chess.js"; // used for chess logic validation (game rules) and to generate FENs
-import { Col, Row, Form } from "react-bootstrap";
+import Form from "react-bootstrap/Form";
 import "./index.css";
 
 // Note, if you are unfamilliar with what a FEN is
@@ -213,8 +212,8 @@ class App extends React.Component {
     // if not, renders the menu , so that they can enter a game from it
     if (inGame === false) {
       UserMenu = (
-        <div id="form-container-col">
-          <div id="form-container-row">
+        <div>
+          <div class="form-container">
             <Form id="mainForm">
               <Form.Group controlId="formCreateGame">
                 <Form.Label>Enter your game password</Form.Label>
@@ -267,7 +266,7 @@ class App extends React.Component {
       );
     } else {
       UserMenu = (
-        <div>
+        <div class="form-container">
           <Chessboard
             position={this.state.currentPositionFen}
             orientation={this.state.userColor}
