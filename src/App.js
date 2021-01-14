@@ -78,6 +78,12 @@ class App extends React.Component {
             currentPositionFen: FENobj.FEN,
           });
           this.state.chessGameObject.move(FENobj.move);
+
+          // this means the game has ended
+          if (this.state.chessGameObject.game_over() === true) {
+            console.log("GAME OVER");
+            //trigger modal and end the game
+          }
         }
       });
     });
@@ -174,6 +180,7 @@ class App extends React.Component {
           to: this.state.targetSquare,
           promotion: "q",
         });
+        //trigger modal and end game
       }
     }
   };
