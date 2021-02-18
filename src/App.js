@@ -280,6 +280,7 @@ class App extends React.Component {
             onMouseOverSquare={this.onMouseOverSquare}
             onDragOverSquare={this.onDragOverSquare}
             onDrop={this.ValidateMove}
+            darkSquareStyle= { {backgroundColor: '#429963' }}
           />
         </div>
       );
