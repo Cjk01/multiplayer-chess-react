@@ -7,3 +7,6 @@ You need the following to run this:
 - React
 - chessboardjsx
 - chess.js
+
+<img src="src/assets/chessmenu.png">
+<img src="src/assets/gameimg.png">
