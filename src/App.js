@@ -1,4 +1,4 @@
-import { io } from "socket.io-client";
+import io  from "socket.io-client";
 import React from "react";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
