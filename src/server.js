@@ -3,8 +3,8 @@ const express = require("express");
 
 const app = express(); // creating instance of express
 const server = http.createServer(app); // creating http server from express instance & enabling cross access origin resource sharing
-const serverBaseURL = "http://localhost:8080";
-const URLfrontEnd = "http://localhost:3000"; // place react app url here
+
+let URLfrontEnd = "http://localhost:3000";
 const io = require("socket.io")(server, {
   cors: {
     // this is required or else you will receive a CORS error, if you are using v3 of socket.io

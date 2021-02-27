@@ -1,10 +1,9 @@
 import io  from "socket.io-client";
 import React from "react";
-import Button from "react-bootstrap/Button";
-import Alert from "react-bootstrap/Alert";
 import Chessboard from "chessboardjsx"; // used for the chessboard React component
 import Chess from "chess.js"; // used for chess logic validation (game rules) and to generate FENs
-import Form from "react-bootstrap/Form";
+import ChessMenu from "./components/ChessMenu";
+import GameSession from "./components/GameSession";
 import "./index.css";
 
 // Note, if you are unfamilliar with what a FEN is
@@ -219,57 +218,16 @@ class App extends React.Component {
     // if not, renders the menu , so that they can enter a game from it
     if (inGame === false) {
       UserMenu = (
-        <div>
-          <div class="form-container">
-            <Form id="mainForm">
-              <Form.Group controlId="formCreateGame">
-                <Form.Label>Enter your game password</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={this.state.passwordCreationInput}
-                  onChange={this.handleCreationInputChange}
-                />
-                <Button variant="primary" onClick={this.handleCreationInput}>
-                  Create Game
-                </Button>
-                <div onChange={this.setColor}>
-                  <Form.Check
-                    name="colorSelect"
-                    type="radio"
-                    inline
-                    label="white"
-                    value="white"
-                  ></Form.Check>
-                  <Form.Check
-                    name="colorSelect"
-                    type="radio"
-                    inline
-                    label="black"
-                    value="black"
-                  ></Form.Check>
-                </div>
-                <Alert
-                  variant="info"
-                  show={this.state.userInfoMessage === "" ? false : true}
-                >
-                  {this.state.userInfoMessage}
-                </Alert>
-              </Form.Group>
-
-              <Form.Group>
-                <Form.Label>Join with password</Form.Label>
-                <Form.Control
-                  value={this.state.gameJoinInput}
-                  onChange={this.handleJoinInputChange}
-                />
-
-                <Button variant="primary" onClick={this.handleJoinInput}>
-                  Join Game
-                </Button>
-              </Form.Group>
-            </Form>
-          </div>
-        </div>
+       <ChessMenu 
+       passwordCreationInput={this.state.passwordCreationInput}
+       handleCreationInputChange={this.handleCreationInputChange}
+       handleCreationInput={this.handleCreationInput}
+       setColor={this.setColor}
+       userInfoMessage={this.state.userInfoMessage}
+       gameJoinInput={this.state.gameJoinInput}
+       handleJoinInputChange={this.handleJoinInputChange}
+       handleJoinInput={this.handleJoinInput}
+       />
       );
     } else {
       UserMenu = (
