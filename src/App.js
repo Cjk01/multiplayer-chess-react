@@ -3,7 +3,6 @@ import React from "react";
 import Chessboard from "chessboardjsx"; // used for the chessboard React component
 import Chess from "chess.js"; // used for chess logic validation (game rules) and to generate FENs
 import ChessMenu from "./components/ChessMenu";
-import GameSession from "./components/GameSession";
 import "./index.css";
 
 // Note, if you are unfamilliar with what a FEN is
