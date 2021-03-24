@@ -1,12 +1,7 @@
-Multiplayer chess with react
+Multiplayer chess made with react, node.js, express, and socket.io.
+Players create a room with a passcode , or join the room with a passcode to play chess together.
 
-You need the following to run this: 
-- Node.js
-- Express
-- Socket.io v3 & socket.io.client
-- React
-- chessboardjsx
-- chess.js
+
 
 <img src="src/assets/chessmenu.png">
 <img src="src/assets/gameimg.png">
